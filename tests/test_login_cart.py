@@ -1,71 +1,47 @@
 from selenium.webdriver.common.by import By
-
-# def test_page_title(browser):
-#     browser.get("http://192.168.1.240:8081/admin")
-#     element = browser.find_element(By.ID, "input-username")
-#     print(element)
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 
-def test_main_page(browser):
+def test_login(browser):
+    browser.get("http://192.168.1.240:8081/admin")
+    name_field = browser.find_element(By.CSS_SELECTOR, "#input-username")
+    name_field.click()
+    name_field.send_keys("user")
+    surname_field = browser.find_element(By.CSS_SELECTOR, "#input-password")
+    surname_field.click()
+    surname_field.send_keys("bitnami")
+    browser.find_element(By.CSS_SELECTOR, ".btn.btn-primary").click()
+    WebDriverWait(browser, 1).until(EC.visibility_of_element_located((By.CSS_SELECTOR, ".hidden-xs.hidden-sm.hidden-md")))
+    button_logout = browser.find_element(By.CSS_SELECTOR, ".hidden-xs.hidden-sm.hidden-md")
+    assert button_logout.text == "Logout"
+
+
+def test_add_product_in_cart(browser):
     browser.get("http://192.168.1.240:8081")
-    assert browser.title == "Your Store"
-    wish_list = browser.find_element(By.CSS_SELECTOR, "#wishlist-total")
-    assert wish_list.text == "Wish List (0)"
     cart = browser.find_element(By.CSS_SELECTOR, "#cart-total")
     assert cart.text == "0 item(s) - $0.00"
-    link = browser.find_element(By.LINK_TEXT, "Checkout")
-    assert link.is_displayed() == True
-    search = browser.find_element(By.CSS_SELECTOR, ".col-sm-5")
-    assert search.is_displayed() == True
+    browser.find_element(By.XPATH, "//body/div[2]/div/div/div[2]/div[1]/div[1]/div[3]/button[1]").click()
+    WebDriverWait(browser, 1).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "#cart-total")))
+    cart = browser.find_element(By.CSS_SELECTOR, "#cart-total")
+    assert cart.text == "1 item(s) - $602.00"
 
 
-def test_catalog_page(browser):
+def test_change_currency_on_main_page(browser):
+    browser.get("http://192.168.1.240:8081")
+    price = browser.find_element(By.XPATH, "//body/div[2]/div/div/div[2]/div[1]/div[1]/div[2]/p[2]")
+    assert price.text == "$602.00\nEx Tax: $500.00"
+    browser.find_element(By.CSS_SELECTOR, ".btn.btn-link.dropdown-toggle").click()
+    WebDriverWait(browser, 1).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "[name='EUR']"))).click()
+    price = browser.find_element(By.XPATH, "//body/div[2]/div/div/div[2]/div[1]/div[1]/div[2]/p[2]")
+    assert price.text == "472.33€\nEx Tax: 392.30€"
+
+
+def test_change_currency_on_product_page(browser):
     browser.get("http://192.168.1.240:8081/desktops")
-    assert browser.title == "Desktops"
-    title = browser.find_element(By.CSS_SELECTOR, "h2")
-    assert title.text == "Desktops"
-    title_2 = browser.find_element(By.CSS_SELECTOR, "h3")
-    assert title_2.text == "Refine Search"
-    compare = browser.find_element(By.CSS_SELECTOR, "#compare-total")
-    assert compare.text == "Product Compare (0)"
-    button = browser.find_element(By.CSS_SELECTOR, ".btn.btn-default.active")
-    assert button.is_enabled() == True
-
-
-def test_product_page(browser):
-    browser.get("http://192.168.1.240:8081/desktops/test")
-    assert browser.title == "Apple Cinema 30"
-    title = browser.find_element(By.CSS_SELECTOR, "h1")
-    assert title.text == 'Apple Cinema 30"'
-    cart_button = browser.find_element(By.CSS_SELECTOR, "#button-cart")
-    assert cart_button.text == "Add to Cart"
-    button = browser.find_element(By.CSS_SELECTOR, "[data-original-title='Add to Wish List']")
-    assert button.is_displayed() == True
-    select_tab = browser.find_element(By.CSS_SELECTOR, "[value='4']")
-    assert select_tab.is_selected() == False
-
-
-def test_admin_page(browser):
-    browser.get("http://192.168.1.240:8081/admin")
-    assert browser.title == "Administration"
-    title = browser.find_element(By.CSS_SELECTOR, ".panel-title")
-    assert title.text == "Please enter your login details."
-    button = browser.find_element(By.CSS_SELECTOR, ".btn.btn-primary")
-    assert button.is_displayed() == True
-    assert button.text == "Login"
-    button.click()
-    alert = browser.find_element(By.CSS_SELECTOR, ".alert.alert-danger.alert-dismissible")
-    assert alert.text == "No match for Username and/or Password.\n×"
-
-
-def test_register_page(browser):
-    browser.get("http://192.168.1.240:8081/index.php?route=account/register")
-    assert browser.title == "Register Account"
-    input = browser.find_element(By.CSS_SELECTOR, "#input-firstname")
-    assert input.is_displayed() == True
-    checkbox = browser.find_element(By.CSS_SELECTOR, "[name = 'agree']")
-    assert checkbox.is_selected() == False
-    checkbox.click()
-    assert checkbox.is_selected() == True
-    button = browser.find_element(By.CSS_SELECTOR, ".btn.btn-primary")
-    assert button.get_property("value") == "Continue"
+    price = browser.find_element(By.XPATH, "//body/div[2]/div/div/div[4]/div[3]/div/div[2]/div/p[2]")
+    assert price.text == "$122.00\nEx Tax: $100.00"
+    browser.find_element(By.CSS_SELECTOR, ".btn.btn-link.dropdown-toggle").click()
+    WebDriverWait(browser, 1).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "[name='EUR']"))).click()
+    price = browser.find_element(By.XPATH, "//body/div[2]/div/div/div[4]/div[3]/div/div[2]/div/p[2]")
+    assert price.text == "95.72€\nEx Tax: 78.46€"
